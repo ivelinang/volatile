@@ -10,6 +10,7 @@ import datetime as dt
 from typing import Union
 
 from tools import ProgressBar
+headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' }
 
 def download(tickers: list, start: Union[str, int] = None, end: Union[str, int] = None, interval: str = "1d") -> dict:
     """
@@ -87,7 +88,7 @@ def download(tickers: list, start: Union[str, int] = None, end: Union[str, int] 
             if ticker in missing_tickers:
                 currencies[ticker] = data_one['meta']['currency']
                 try:
-                    html = requests.get(url='https://finance.yahoo.com/quote/' + ticker).text
+                    html = requests.get(url='https://finance.yahoo.com/quote/' + ticker, headers=headers).text
                     json_str = html.split('root.App.main =')[1].split('(this)')[0].split(';\n}')[0].strip()
                     info = json.loads(json_str)['context']['dispatcher']['stores']['QuoteSummaryStore']['summaryProfile']
                     assert (len(info['sector']) > 0) and (len(info['industry']) > 0)
@@ -168,10 +169,10 @@ def _download_one(ticker: str, start: int, end: int, interval: str = "1d") -> di
     """
     base_url = 'https://query1.finance.yahoo.com'
 
-    params = dict(period1=start, period2=end, interval=interval.lower(), includePrePost=False)
+    params = dict(period1=start, period2=end, interval=interval.lower(), includePrePost=False)     
 
     url = "{}/v8/finance/chart/{}".format(base_url, ticker)
-    data = requests.get(url=url, params=params)
+    data = requests.get(url=url, params=params, headers=headers)
 
     if "Will be right back" in data.text:
         raise RuntimeError("*** YAHOO! FINANCE is currently down! ***\n")
